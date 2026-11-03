@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CV Maker</string>
+    <string name="title_activity_main">CV Maker</string>
+    <string name="package_name">com.cvmaker.app</string>
+    <string name="custom_url_scheme">com.cvmaker.app</string>
+</resources>
