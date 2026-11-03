@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile and preferences in CV Maker",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 256 },
+        "displayName": { "type": "string", "maxLength": 120 },
+        "photoURL": { "type": "string", "maxLength": 2048 },
+        "preferredLanguage": { "type": "string", "enum": ["en", "so"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "CVDocument": {
+      "title": "CVDocument",
+      "description": "Stored structured CV document created by a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "templateId": { "type": "string", "maxLength": 64 },
+        "language": { "type": "string", "enum": ["en", "so"] },
+        "data": { "type": "object" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "templateId", "language", "data", "createdAt", "updatedAt"]
+    },
+    "StudioDocument": {
+      "title": "StudioDocument",
+      "description": "Custom Canva-style CV design document with pages and elements",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 200 },
+        "pages": { "type": "array" },
+        "pageWidth": { "type": "number" },
+        "pageHeight": { "type": "number" },
+        "activePageId": { "type": "string", "maxLength": 128 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "title", "pages", "pageWidth", "pageHeight", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "Stores user profile and account details"
+    },
+    "/users/{userId}/cvs/{cvId}": {
+      "schema": "CVDocument",
+      "description": "Stores user automatic and manual CV documents"
+    },
+    "/users/{userId}/studioDocuments/{docId}": {
+      "schema": "StudioDocument",
+      "description": "Stores user Canva-style CV Studio designs"
+    }
+  }
+}

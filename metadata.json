@@ -1,0 +1,6 @@
+{
+  "name": "CV Maker",
+  "description": "Mobile-first CV Builder & Canva-Style Design Studio with 12 professional templates, freeform drag-and-drop canvas, bilingual English & Somali support, and instant PDF export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
