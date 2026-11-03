@@ -24,7 +24,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Setup Java JDK
         uses: actions/setup-java@v4
@@ -36,7 +35,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Node Dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps
 
       - name: Build Web Application
         run: npm run build
@@ -73,19 +72,22 @@ jobs:
         with:
           tag_name: ${{ steps.release_info.outputs.tag_name }}
           name: ${{ steps.release_info.outputs.release_title }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          draft: false
+          prerelease: false
           body: |
             ### 📱 CV Maker — Android APK Release
-            
-            Welcome to the official Android APK release for **CV Maker**!
-            
-            #### Features:
-            - **Automatic CV Builder**: 12 professional templates with bilingual English & Somali support.
-            - **Canva-Style Design Studio**: Freeform drag-and-drop editor, custom shapes (circle, rounded, hexagon, badge), elements, and typography.
-            - **Instant PDF Export**: High-resolution print-ready A4 export directly on your device.
-            - **Cloud & Local Storage**: Auto-save drafts and sync seamlessly with Google Sign-In & Firebase.
-            
-            #### 📥 Download & Installation:
-            Download **`CV-Maker.apk`** below to install directly on your Android phone.
+
+            Ku soo dhowow nooca rasmiga ah ee **CV Maker Android APK**!
+
+            #### ✨ Astaamaha ugu muhiimsan (Features):
+            - **Automatic CV Builder**: 12 templates xirfadeed oo taageeraya af-Soomaali iyo English.
+            - **Canva-Style Design Studio**: Wax ka beddel xor ah (drag & drop), qaabab (circle, hexagon, badges), sawirro & qoraallo.
+            - **PDF Export Toos ah**: Soo degso CV-gaaga oo PDF tayo sare leh (A4 print-ready).
+            - **Cloud & Local Storage**: Kaydi CV-yadaada taleefankaaga ama ku xir Google/Firebase.
+
+            #### 📥 Sida loo rakibo (Download & Install):
+            Hoos ka soo degso feylka **`CV-Maker.apk`**, kadibna ku fur taleefankaaga Android si aad u rakibatid (Install).
           files: release-assets/CV-Maker.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
