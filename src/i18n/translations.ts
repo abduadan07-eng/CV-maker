@@ -307,6 +307,26 @@ export interface TranslationDictionary {
   signInToBackup: string;
   cloudDrafts: string;
   saveToDatabase: string;
+
+  // Bottom Navigation & Community
+  tabHome: string;
+  tabLibrary: string;
+  tabTemplates: string;
+  tabMe: string;
+  libraryTitle: string;
+  librarySubtitle: string;
+  reusableTemplate: string;
+  viewOnlyTemplate: string;
+  useThisTemplate: string;
+  creatorPortal: string;
+  creatorApplyTitle: string;
+  creatorPending: string;
+  creatorApproved: string;
+  creatorRejected: string;
+  multiPageManager: string;
+  targetPageCount: string;
+  applyPages: string;
+  adminPortal: string;
 }
 
 export const translations: Record<InterfaceLanguage, TranslationDictionary> = {
@@ -597,7 +617,27 @@ export const translations: Record<InterfaceLanguage, TranslationDictionary> = {
     cloudBackupNotice: "Your CVs and Studio designs are securely backed up in your cloud database.",
     signInToBackup: "Sign in with Google to securely sync your CVs to the database and access them anywhere.",
     cloudDrafts: "Cloud Database Drafts",
-    saveToDatabase: "Save to Database"
+    saveToDatabase: "Save to Database",
+
+    // Bottom Navigation & Community
+    tabHome: "Home",
+    tabLibrary: "Library",
+    tabTemplates: "Templates",
+    tabMe: "Me",
+    libraryTitle: "Community Template Library",
+    librarySubtitle: "Explore high-quality templates curated by expert creators.",
+    reusableTemplate: "Reusable",
+    viewOnlyTemplate: "View Only",
+    useThisTemplate: "Use this Template",
+    creatorPortal: "Creator Portal",
+    creatorApplyTitle: "Apply to Become a Template Creator",
+    creatorPending: "Application Under Review",
+    creatorApproved: "Verified Creator",
+    creatorRejected: "Application Rejected",
+    multiPageManager: "Multi-Page CV Layout",
+    targetPageCount: "Target Page Count",
+    applyPages: "Apply Page Layout",
+    adminPortal: "Admin Dashboard"
   },
 
   so: {
@@ -887,6 +927,26 @@ export const translations: Record<InterfaceLanguage, TranslationDictionary> = {
     cloudBackupNotice: "CV-yadaada iyo naqshadahaaga waxay si ammaan ah ugu kaydsan yihiin database-ka cloud-ka.",
     signInToBackup: "Ku gal akoonkaaga Google si CV-yadaada ugu kaydsanaadaan database-ka aadna uga hesho qalab kasta.",
     cloudDrafts: "Qabyooyinka Database-ka",
-    saveToDatabase: "Ku Kaydi Database-ka"
+    saveToDatabase: "Ku Kaydi Database-ka",
+
+    // Bottom Navigation & Community
+    tabHome: "Hoyga",
+    tabLibrary: "Maktabadda",
+    tabTemplates: "Templates",
+    tabMe: "Aniga",
+    libraryTitle: "Maktabadda Templates-ka Bulshada",
+    librarySubtitle: "Ka baaro templates tayo sare leh oo ay diyaariyeen creators xirfadlayaal ah.",
+    reusableTemplate: "Dib loo isticmaali karo",
+    viewOnlyTemplate: "Daawasho Keliya",
+    useThisTemplate: "Isticmaal Template-kan",
+    creatorPortal: "Nidaamka Creators-ka",
+    creatorApplyTitle: "Codso inaad noqoto Template Creator",
+    creatorPending: "Codsigu wuxuu ku jiraa dib u eegis",
+    creatorApproved: "Creator la xaqiijiyey",
+    creatorRejected: "Codsiga lama aqbalin",
+    multiPageManager: "Maamulka Bogagga CV-ga",
+    targetPageCount: "Tirada Bogagga Bartilmaameedka ah",
+    applyPages: "Dabbaq Bogaggan",
+    adminPortal: "Dashboard-ka Maamulka"
   }
 };

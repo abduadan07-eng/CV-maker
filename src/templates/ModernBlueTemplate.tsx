@@ -34,19 +34,19 @@ export const ModernBlueTemplate: React.FC<TemplateProps> = ({ cvData }) => {
               </p>
             )}
 
-            {/* Contact Pills */}
+            {/* Contact Pills with Clickable Links */}
             <div className="flex flex-wrap justify-center md:justify-start gap-3 mt-4 text-xs text-blue-100">
               {personal.email && (
-                <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-xs px-2.5 py-1 rounded-md">
+                <a href={`mailto:${personal.email}`} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-md transition text-inherit">
                   <Mail className="w-3.5 h-3.5 text-blue-300" />
                   <span>{personal.email}</span>
-                </div>
+                </a>
               )}
               {personal.phone && (
-                <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-xs px-2.5 py-1 rounded-md">
+                <a href={`tel:${personal.phone.replace(/[^\d+]/g, '')}`} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-md transition text-inherit">
                   <Phone className="w-3.5 h-3.5 text-blue-300" />
                   <span>{personal.phone}</span>
-                </div>
+                </a>
               )}
               {location && (
                 <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-xs px-2.5 py-1 rounded-md">
@@ -55,16 +55,26 @@ export const ModernBlueTemplate: React.FC<TemplateProps> = ({ cvData }) => {
                 </div>
               )}
               {personal.linkedin && (
-                <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-xs px-2.5 py-1 rounded-md">
+                <a
+                  href={personal.linkedin.startsWith('http') ? personal.linkedin : `https://${personal.linkedin}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-md transition text-inherit"
+                >
                   <Linkedin className="w-3.5 h-3.5 text-blue-300" />
                   <span>{personal.linkedin}</span>
-                </div>
+                </a>
               )}
               {personal.website && (
-                <div className="flex items-center gap-1.5 bg-white/10 backdrop-blur-xs px-2.5 py-1 rounded-md">
+                <a
+                  href={personal.website.startsWith('http') ? personal.website : `https://${personal.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-xs px-2.5 py-1 rounded-md transition text-inherit"
+                >
                   <Globe className="w-3.5 h-3.5 text-blue-300" />
                   <span>{personal.website}</span>
-                </div>
+                </a>
               )}
             </div>
           </div>

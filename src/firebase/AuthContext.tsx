@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isCloudConnected: boolean;
-  signInWithGoogle: () => Promise<void>;
+  signInWithGoogle: () => Promise<boolean>;
   signOutUser: () => Promise<void>;
 }
 
@@ -44,13 +44,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = async () => {
+  const signInWithGoogle = async (): Promise<boolean> => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       if (result.user) {
         await syncUserProfile(result.user);
       }
-    } catch (error) {
+      return true;
+    } catch (error: any) {
+      // Check if user simply closed the popup or cancelled the request
+      const isPopupClosedByUser =
+        error?.code === 'auth/popup-closed-by-user' ||
+        error?.code === 'auth/cancelled-popup-request' ||
+        error?.code === 'auth/user-cancelled' ||
+        (typeof error?.message === 'string' &&
+          (error.message.includes('popup-closed-by-user') ||
+           error.message.includes('cancelled-popup-request')));
+
+      if (isPopupClosedByUser) {
+        // User closed or dismissed the login popup intentionally.
+        // Return false gracefully without throwing or reporting fatal error.
+        return false;
+      }
+
       console.error('Google Sign-In Error:', error);
       throw error;
     }

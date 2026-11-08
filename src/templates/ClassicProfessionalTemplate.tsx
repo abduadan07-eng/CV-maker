@@ -36,34 +36,44 @@ export const ClassicProfessionalTemplate: React.FC<TemplateProps> = ({ cvData })
         {/* Contact Info Row */}
         <div className="flex flex-wrap justify-center items-center gap-x-4 gap-y-1 text-xs text-slate-700 mt-3 font-sans">
           {personal.email && (
-            <span className="inline-flex items-center gap-1">
+            <a href={`mailto:${personal.email}`} className="inline-flex items-center gap-1 hover:underline text-inherit">
               <Mail className="w-3.5 h-3.5 text-slate-500" />
-              {personal.email}
-            </span>
+              <span>{personal.email}</span>
+            </a>
           )}
           {personal.phone && (
-            <span className="inline-flex items-center gap-1">
+            <a href={`tel:${personal.phone.replace(/[^\d+]/g, '')}`} className="inline-flex items-center gap-1 hover:underline text-inherit">
               <Phone className="w-3.5 h-3.5 text-slate-500" />
-              {personal.phone}
-            </span>
+              <span>{personal.phone}</span>
+            </a>
           )}
           {location && (
             <span className="inline-flex items-center gap-1">
               <MapPin className="w-3.5 h-3.5 text-slate-500" />
-              {location}
+              <span>{location}</span>
             </span>
           )}
           {personal.linkedin && (
-            <span className="inline-flex items-center gap-1">
+            <a
+              href={personal.linkedin.startsWith('http') ? personal.linkedin : `https://${personal.linkedin}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 hover:underline text-inherit"
+            >
               <Linkedin className="w-3.5 h-3.5 text-slate-500" />
-              {personal.linkedin}
-            </span>
+              <span>{personal.linkedin}</span>
+            </a>
           )}
           {personal.website && (
-            <span className="inline-flex items-center gap-1">
+            <a
+              href={personal.website.startsWith('http') ? personal.website : `https://${personal.website}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 hover:underline text-inherit"
+            >
               <Globe className="w-3.5 h-3.5 text-slate-500" />
-              {personal.website}
-            </span>
+              <span>{personal.website}</span>
+            </a>
           )}
         </div>
       </header>

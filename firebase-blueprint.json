@@ -8,12 +8,15 @@
         "uid": { "type": "string", "maxLength": 128 },
         "email": { "type": "string", "maxLength": 256 },
         "displayName": { "type": "string", "maxLength": 120 },
-        "photoURL": { "type": "string", "maxLength": 2048 },
+        "username": { "type": "string", "maxLength": 60 },
+        "photoURL": { "type": "string", "maxLength": 50000 },
         "preferredLanguage": { "type": "string", "enum": ["en", "so"] },
+        "isCreator": { "type": "boolean" },
+        "creatorStatus": { "type": "string", "enum": ["not_applied", "pending", "approved", "rejected"] },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["uid", "email", "createdAt"]
+      "required": ["uid", "email"]
     },
     "CVDocument": {
       "title": "CVDocument",
@@ -47,6 +50,56 @@
         "updatedAt": { "type": "string" }
       },
       "required": ["id", "userId", "title", "pages", "pageWidth", "pageHeight", "createdAt", "updatedAt"]
+    },
+    "CommunityTemplate": {
+      "title": "CommunityTemplate",
+      "description": "Published community CV templates curated by approved creators",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "creatorId": { "type": "string", "maxLength": 128 },
+        "creatorDisplayName": { "type": "string", "maxLength": 120 },
+        "creatorPhotoUrl": { "type": "string", "maxLength": 2048 },
+        "name": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 500 },
+        "category": { "type": "string", "enum": ["professional", "modern", "creative", "academic", "minimal"] },
+        "tags": { "type": "array" },
+        "type": { "type": "string", "enum": ["cv", "studio"] },
+        "baseTemplateId": { "type": "string", "maxLength": 64 },
+        "designData": { "type": "object" },
+        "previewPath": { "type": "string", "maxLength": 2048 },
+        "visibility": { "type": "string", "enum": ["public", "private"] },
+        "usagePermission": { "type": "string", "enum": ["reusable", "view_only"] },
+        "status": { "type": "string", "enum": ["draft", "pending", "approved", "rejected", "suspended"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "approvedAt": { "type": "string" },
+        "approvedBy": { "type": "string", "maxLength": 128 },
+        "rejectionReason": { "type": "string", "maxLength": 500 },
+        "usageCount": { "type": "number" }
+      },
+      "required": ["id", "creatorId", "creatorDisplayName", "name", "category", "visibility", "usagePermission", "status"]
+    },
+    "CreatorApplication": {
+      "title": "CreatorApplication",
+      "description": "Application submitted by user to become an approved community template creator",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "applicantName": { "type": "string", "maxLength": 120 },
+        "email": { "type": "string", "maxLength": 256 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "portfolioUrl": { "type": "string", "maxLength": 500 },
+        "sampleExperience": { "type": "string", "maxLength": 1000 },
+        "status": { "type": "string", "enum": ["not_applied", "pending", "approved", "rejected"] },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" },
+        "reviewedAt": { "type": "string" },
+        "reviewedBy": { "type": "string", "maxLength": 128 },
+        "rejectionReason": { "type": "string", "maxLength": 500 }
+      },
+      "required": ["id", "userId", "applicantName", "email", "description", "status"]
     }
   },
   "firestore": {
@@ -61,6 +114,14 @@
     "/users/{userId}/studioDocuments/{docId}": {
       "schema": "StudioDocument",
       "description": "Stores user Canva-style CV Studio designs"
+    },
+    "/communityTemplates/{templateId}": {
+      "schema": "CommunityTemplate",
+      "description": "Stores community templates submitted and published by creators"
+    },
+    "/creatorApplications/{applicationId}": {
+      "schema": "CreatorApplication",
+      "description": "Stores creator permission applications for admin review"
     }
   }
 }

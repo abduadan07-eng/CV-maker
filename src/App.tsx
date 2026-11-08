@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { CVDraft, TemplateId, CVLanguage } from './types/cv';
+import { CVDraft, TemplateId, CVLanguage, CVData } from './types/cv';
 import { cvStorage } from './storage/cvStorage';
 import { LanguageProvider } from './i18n/LanguageContext';
-import { Navbar } from './components/Navbar';
+import { Navbar, AppNavView } from './components/Navbar';
+import { BottomNavigation, MainTab } from './components/BottomNavigation';
+import { SplashScreen } from './components/SplashScreen';
 import { HomePage } from './pages/HomePage';
 import { BuilderPage } from './pages/BuilderPage';
 import { LivePreview } from './preview/LivePreview';
 import { DesignStudioPage } from './pages/DesignStudioPage';
+import { LibraryPage } from './pages/LibraryPage';
+import { CreatorPage } from './pages/CreatorPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { AdminDashboard } from './components/AdminDashboard';
 import { StudioDocument } from './types/studio';
 import { studioStorage } from './storage/studioStorage';
 import { createBlankStudioDocument, convertCvDataToStudioDocument } from './studio/studioConverter';
@@ -20,7 +26,10 @@ import {
 
 export default function App() {
   const { user } = useAuth();
-  const [activeView, setActiveView] = useState<'home' | 'builder' | 'preview' | 'studio'>('home');
+  const [showSplash, setShowSplash] = useState<boolean>(true);
+  const [activeView, setActiveView] = useState<AppNavView>('home');
+  const [showAdminDashboard, setShowAdminDashboard] = useState<boolean>(false);
+
   const [drafts, setDrafts] = useState<CVDraft[]>([]);
   const [activeDraft, setActiveDraft] = useState<CVDraft | null>(null);
   const [activeStudioDoc, setActiveStudioDoc] = useState<StudioDocument | null>(null);
@@ -43,7 +52,7 @@ export default function App() {
         const cloudCVs = await getUserCVsFromCloud(user.uid);
         const localCVs = cvStorage.getDrafts();
 
-        // 2. Merge local and cloud CVs
+        // 2. Merge local and cloud CVs safely without deleting local data
         const mergedMap = new Map<string, CVDraft>();
 
         // Add cloud CVs first
@@ -62,7 +71,6 @@ export default function App() {
         );
 
         if (mergedList.length > 0) {
-          // Update localStorage
           mergedList.forEach(d => cvStorage.saveDraft(d));
           setDrafts(mergedList);
           if (!activeDraft) {
@@ -88,13 +96,11 @@ export default function App() {
   const refreshDraftsList = () => {
     let loaded = cvStorage.getDrafts();
     if (loaded.length === 0) {
-      // Seed a starter sample so the user immediately has a working CV to explore
       const initialSample = cvStorage.createSampleDraft('Sample Professional CV');
       loaded = [initialSample];
     }
     setDrafts(loaded);
 
-    // If an active draft was stored, restore it
     const activeId = cvStorage.getActiveDraftId();
     if (activeId) {
       const found = loaded.find(d => d.id === activeId);
@@ -103,7 +109,6 @@ export default function App() {
         return;
       }
     }
-    // Default to first available draft so preview is always ready
     if (loaded.length > 0) {
       setActiveDraft(loaded[0]);
     }
@@ -152,11 +157,9 @@ export default function App() {
   const handleUpdateDraft = (updated: CVDraft) => {
     setActiveDraft(updated);
     setHasUnsavedChanges(true);
-    // Autosave to storage
     cvStorage.saveDraft(updated);
     setDrafts(cvStorage.getDrafts());
 
-    // Sync to Cloud Firestore if signed in
     if (user) {
       saveCVToCloud(user.uid, updated).catch(err => {
         console.warn('Auto cloud sync notice:', err);
@@ -233,9 +236,24 @@ export default function App() {
     setActiveView('studio');
   };
 
+  // Determine current active bottom tab
+  const currentBottomTab: MainTab =
+    activeView === 'library'
+      ? 'library'
+      : activeView === 'templates'
+      ? 'templates'
+      : activeView === 'me'
+      ? 'me'
+      : 'home';
+
   return (
     <LanguageProvider>
-      <div className="min-h-screen flex flex-col font-inter bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white">
+      <div className="min-h-screen flex flex-col font-inter bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white relative">
+        {/* Splash Screen */}
+        {showSplash && (
+          <SplashScreen onDismiss={() => setShowSplash(false)} />
+        )}
+
         {/* Navigation Header */}
         <Navbar
           activeView={activeView}
@@ -255,7 +273,7 @@ export default function App() {
         />
 
         {/* View Routing */}
-        <div className="flex-1">
+        <div className="flex-1 pb-16">
           {activeView === 'home' && (
             <HomePage
               drafts={drafts}
@@ -273,6 +291,35 @@ export default function App() {
               onRefreshDrafts={refreshDraftsList}
               onDeleteDraft={handleDeleteDraft}
               isCloudSyncing={isCloudSyncing}
+            />
+          )}
+
+          {activeView === 'library' && (
+            <LibraryPage
+              onUseTemplateAsCV={(draft) => {
+                setActiveDraft(draft);
+                refreshDraftsList();
+                setActiveView('builder');
+              }}
+              onUseTemplateInStudio={(studioDoc) => {
+                setActiveStudioDoc(studioDoc);
+                setActiveView('studio');
+              }}
+            />
+          )}
+
+          {activeView === 'templates' && (
+            <CreatorPage
+              onOpenStudio={() => handleOpenStudio()}
+              onOpenBuilder={handleCreateNew}
+            />
+          )}
+
+          {activeView === 'me' && (
+            <ProfilePage
+              onOpenAdminDashboard={() => setShowAdminDashboard(true)}
+              onNavigateToTemplates={() => setActiveView('templates')}
+              onOpenDraft={handleOpenDraft}
             />
           )}
 
@@ -297,6 +344,14 @@ export default function App() {
               onEdit={() => setActiveView('builder')}
               onUpdateCVLanguage={handleUpdateCVLanguage}
               onOpenInStudio={() => handleImportDraftToStudio(activeDraft)}
+              onUpdateCVData={(updatedCVData: CVData) => {
+                const updatedDraft: CVDraft = {
+                  ...activeDraft,
+                  cvData: updatedCVData,
+                  updatedAt: new Date().toISOString()
+                };
+                handleUpdateDraft(updatedDraft);
+              }}
             />
           )}
 
@@ -311,6 +366,19 @@ export default function App() {
             />
           )}
         </div>
+
+        {/* 4-Tab Bottom Navigation (Home, Library, Templates, Me) */}
+        <BottomNavigation
+          currentTab={currentBottomTab}
+          onSelectTab={(tab: MainTab) => {
+            setActiveView(tab);
+          }}
+        />
+
+        {/* Authorized Admin Dashboard Modal */}
+        {showAdminDashboard && (
+          <AdminDashboard onClose={() => setShowAdminDashboard(false)} />
+        )}
       </div>
     </LanguageProvider>
   );

@@ -11,20 +11,78 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Users Collection and Subcollections
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email != null && (
+          request.auth.token.email == 'yahy38989@gmail.com' ||
+          request.auth.token.email == 'Yahy38989@gmail.com' ||
+          request.auth.token.email == 'aa8402502@gmail.com'
+        )) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Default connection test collection
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // Admins registry
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // Users Collection and Personal Subcollections
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read, write: if isOwner(userId) || isAdmin();
 
       // Subcollection: Saved CVs
       match /cvs/{cvId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
 
       // Subcollection: Canva-Style Studio Documents
       match /studioDocuments/{docId} {
-        allow read, write: if isOwner(userId);
+        allow read, write: if isOwner(userId) || isAdmin();
       }
+    }
+
+    // Community Templates
+    match /communityTemplates/{templateId} {
+      // Public approved templates can be viewed by anyone; creators and admins can view drafts/pending
+      allow get: if (resource.data.status == 'approved' && resource.data.visibility == 'public') ||
+                    (isSignedIn() && (resource.data.creatorId == request.auth.uid || isAdmin()));
+
+      allow list: if (resource.data.status == 'approved' && resource.data.visibility == 'public') ||
+                     (isSignedIn() && (resource.data.creatorId == request.auth.uid || isAdmin()));
+
+      // Creators can create templates
+      allow create: if isSignedIn() && request.resource.data.creatorId == request.auth.uid;
+
+      // Creators can update their own templates; admins can update status; or atomic usageCount increments
+      allow update: if isSignedIn() && (
+        (resource.data.creatorId == request.auth.uid && request.resource.data.creatorId == request.auth.uid) ||
+        isAdmin() ||
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usageCount', 'updatedAt'])
+      );
+
+      // Creator or Admin can delete
+      allow delete: if isSignedIn() && (resource.data.creatorId == request.auth.uid || isAdmin());
+    }
+
+    // Creator Applications
+    match /creatorApplications/{applicationId} {
+      allow get: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Fallback: Deny any other unauthorized collection access
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
-

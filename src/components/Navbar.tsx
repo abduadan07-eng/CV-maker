@@ -3,9 +3,11 @@ import { useLanguage } from '../i18n/LanguageContext';
 import { useAuth } from '../firebase/AuthContext';
 import { FileText, Globe, Home, Eye, Check, Database, Cloud, LogIn, LogOut, User as UserIcon } from 'lucide-react';
 
+export type AppNavView = 'home' | 'builder' | 'preview' | 'studio' | 'library' | 'templates' | 'me';
+
 interface NavbarProps {
-  activeView: 'home' | 'builder' | 'preview' | 'studio';
-  onNavigate: (view: 'home' | 'builder' | 'preview' | 'studio') => void;
+  activeView: AppNavView;
+  onNavigate: (view: AppNavView) => void;
   draftTitle?: string;
   hasUnsavedChanges?: boolean;
 }
@@ -25,8 +27,18 @@ export const Navbar: React.FC<NavbarProps> = ({
     try {
       setIsSigningIn(true);
       await signInWithGoogle();
-    } catch (err) {
-      console.error('Sign-in failed:', err);
+    } catch (err: any) {
+      const isPopupClosed =
+        err?.code === 'auth/popup-closed-by-user' ||
+        err?.code === 'auth/cancelled-popup-request' ||
+        err?.code === 'auth/user-cancelled' ||
+        (typeof err?.message === 'string' &&
+          (err.message.includes('popup-closed-by-user') ||
+           err.message.includes('cancelled-popup-request')));
+
+      if (!isPopupClosed) {
+        console.error('Sign-in failed:', err);
+      }
     } finally {
       setIsSigningIn(false);
     }
@@ -180,6 +192,17 @@ export const Navbar: React.FC<NavbarProps> = ({
                       <span>{t('cloudConnected')}</span>
                     </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowUserMenu(false);
+                      onNavigate('me');
+                    }}
+                    className="w-full text-left px-3 py-2 text-slate-700 hover:bg-slate-50 flex items-center gap-2 font-medium cursor-pointer transition border-b border-slate-100"
+                  >
+                    <UserIcon className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{language === 'so' ? 'Bogga Profile-ka' : 'View Profile'}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={handleSignOut}

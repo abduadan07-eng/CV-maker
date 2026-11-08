@@ -100,9 +100,20 @@ export const HomePage: React.FC<HomePageProps> = ({
   const handleManualSyncAll = async () => {
     if (!user) {
       try {
-        await signInWithGoogle();
-      } catch (err) {
-        console.error(err);
+        const signedIn = await signInWithGoogle();
+        if (!signedIn) return;
+      } catch (err: any) {
+        const isPopupClosed =
+          err?.code === 'auth/popup-closed-by-user' ||
+          err?.code === 'auth/cancelled-popup-request' ||
+          err?.code === 'auth/user-cancelled' ||
+          (typeof err?.message === 'string' &&
+            (err.message.includes('popup-closed-by-user') ||
+             err.message.includes('cancelled-popup-request')));
+
+        if (!isPopupClosed) {
+          console.error(err);
+        }
       }
       return;
     }

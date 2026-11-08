@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CVData, TemplateId, CVLanguage } from '../types/cv';
+import { CVData, TemplateId, CVLanguage, CVPageLayout } from '../types/cv';
 import { getTemplateComponent, getTemplateMeta } from '../templates/TemplateRegistry';
 import { useLanguage } from '../i18n/LanguageContext';
 import { exportElementToPDF, printCv, shareCv } from '../pdf/pdfExport';
 import { TemplateGalleryModal } from '../components/TemplateGalleryModal';
+import { MultiPageLayoutModal } from '../components/MultiPageLayoutModal';
 import {
   Download,
   Printer,
@@ -15,7 +16,9 @@ import {
   Maximize2,
   Check,
   Globe,
-  Sparkles
+  Sparkles,
+  Layers,
+  FileText
 } from 'lucide-react';
 
 interface LivePreviewProps {
@@ -25,6 +28,7 @@ interface LivePreviewProps {
   onEdit: () => void;
   onUpdateCVLanguage: (cvLang: CVLanguage) => void;
   onOpenInStudio?: () => void;
+  onUpdateCVData?: (updated: CVData) => void;
 }
 
 export const LivePreview: React.FC<LivePreviewProps> = ({
@@ -33,11 +37,11 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
   onSelectTemplate,
   onEdit,
   onUpdateCVLanguage,
-  onOpenInStudio
+  onOpenInStudio,
+  onUpdateCVData
 }) => {
   const { t, language } = useLanguage();
 
-  // Calculate the zoom that fits the 794px-wide A4 document perfectly into the screen
   const calculateAutoFitZoom = () => {
     if (typeof window === 'undefined') return 0.85;
     const margin = window.innerWidth < 640 ? 20 : 48;
@@ -49,6 +53,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
   const [zoom, setZoom] = useState<number>(() => calculateAutoFitZoom());
   const [docHeight, setDocHeight] = useState<number>(1123);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isPagesModalOpen, setIsPagesModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -58,7 +63,11 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
 
   const templateName = language === 'so' ? currentMeta.nameSo : currentMeta.nameEn;
 
-  // Track document height dynamically so scaled container never clips the bottom
+  // Total pages calculation
+  const totalPagesCount = cvData.pageLayout?.totalPages && cvData.pageLayout.totalPages > 0
+    ? cvData.pageLayout.totalPages
+    : Math.max(1, Math.ceil(docHeight / 1123));
+
   useEffect(() => {
     if (containerRef.current) {
       const el = containerRef.current;
@@ -74,10 +83,8 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
     }
   }, [templateId, cvData]);
 
-  // Handle window resizing
   useEffect(() => {
     const handleResize = () => {
-      // If mobile, auto-recompute fit zoom on rotation
       if (window.innerWidth < 640) {
         setZoom(calculateAutoFitZoom());
       }
@@ -106,7 +113,11 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
         fileName: filename,
         quality: 2
       });
-      showToast(t('exportSuccessMsg'));
+      showToast(
+        language === 'so'
+          ? `PDF dhab ah oo leh qoraal la dooran karo waa la soo dejiyey (${totalPagesCount} bog)!`
+          : `Real selectable multi-page PDF generated successfully (${totalPagesCount} pages)!`
+      );
     } catch (err) {
       console.error(err);
       showToast(t('exportErrorMsg'));
@@ -128,12 +139,26 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
     }
   };
 
+  const handleUpdateLayout = (newLayout: CVPageLayout) => {
+    if (onUpdateCVData) {
+      onUpdateCVData({
+        ...cvData,
+        pageLayout: newLayout
+      });
+      showToast(
+        language === 'so'
+          ? `Qaabka ${newLayout.totalPages || 'Auto'} bog waa la dabbaqay!`
+          : `Multi-page layout updated!`
+      );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-100/90 pb-20 flex flex-col">
       {/* Top Action Bar (Sticky, No-Print) */}
       <div className="no-print bg-white border-b border-slate-200 sticky top-16 z-20 shadow-xs">
         <div className="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
-          {/* Left Actions: Back to Edit & Template Picker */}
+          {/* Left Actions */}
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -151,7 +176,19 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
             >
               <LayoutTemplate className="w-3.5 h-3.5 text-blue-600" />
               <span className="hidden sm:inline">{t('changeTemplateBtn')}:</span>
-              <span className="font-bold text-blue-600">{templateName}</span>
+              <span className="font-bold text-blue-600 truncate max-w-[120px]">{templateName}</span>
+            </button>
+
+            {/* Multi-Page Settings Button */}
+            <button
+              type="button"
+              onClick={() => setIsPagesModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-2xs"
+              title="Multi-Page Layout Manager"
+            >
+              <Layers className="w-3.5 h-3.5 text-blue-600" />
+              <span className="hidden sm:inline">Pages:</span>
+              <span className="font-bold">{totalPagesCount} {totalPagesCount === 1 ? 'Page' : 'Pages'}</span>
             </button>
 
             {onOpenInStudio && (
@@ -168,7 +205,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
             )}
           </div>
 
-          {/* Center: CV Content Language Switcher */}
+          {/* Center: Language Switcher */}
           <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs border border-slate-200">
             <span className="text-[11px] font-semibold text-slate-500 pl-1.5 flex items-center gap-1">
               <Globe className="w-3 h-3" />
@@ -198,9 +235,8 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
             </button>
           </div>
 
-          {/* Right Actions: Zoom, Fit, Download, Print, Share */}
+          {/* Right Actions: Zoom, Fit, Print, Download */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-            {/* Zoom Controls with Center/Fit */}
             <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
               <button
                 type="button"
@@ -228,32 +264,22 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
                 className="px-2 py-1 bg-white hover:bg-blue-50 text-blue-700 rounded-lg text-[10px] font-bold shadow-2xs flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <Maximize2 className="w-3 h-3" />
-                <span>{language === 'so' ? 'Dhaxda (Fit)' : 'Fit'}</span>
+                <span>{language === 'so' ? 'Fit' : 'Fit'}</span>
               </button>
             </div>
 
-            {/* Print / Save PDF */}
+            {/* Print / Save as Vector PDF */}
             <button
               type="button"
               onClick={handlePrint}
               className="inline-flex items-center gap-1 px-2.5 sm:px-3 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+              title="Print / Save Vector PDF"
             >
               <Printer className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">{t('printBtn')}</span>
             </button>
 
-            {/* Share */}
-            <button
-              type="button"
-              onClick={handleShare}
-              className="p-2 sm:px-3 sm:py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-xl text-xs font-semibold cursor-pointer transition-colors"
-              title={t('shareBtn')}
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline ml-1.5">{t('shareBtn')}</span>
-            </button>
-
-            {/* Download PDF Button */}
+            {/* Download PDF */}
             <button
               type="button"
               disabled={isExporting}
@@ -261,7 +287,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
               className="inline-flex items-center gap-1.5 px-3.5 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors shadow-sm"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>{isExporting ? t('downloadingPdf') : t('downloadPdfBtn')}</span>
+              <span>{isExporting ? (language === 'so' ? 'Waa la diyaarinayaa...' : 'Generating...') : 'Save PDF'}</span>
             </button>
           </div>
         </div>
@@ -275,7 +301,7 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
         </div>
       )}
 
-      {/* A4 Document Workspace: Symmetrically Centered without clipping */}
+      {/* A4 Document Workspace */}
       <main className="w-full flex-1 px-2 sm:px-4 pt-6 pb-24 flex justify-center items-start overflow-x-auto">
         <div
           className="relative mx-auto transition-all"
@@ -295,14 +321,22 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
               position: 'absolute',
               top: 0,
               left: '50%',
-              marginLeft: '-397px', // Exactly 794px / 2 for symmetrical horizontal center
+              marginLeft: '-397px',
               transition: 'transform 0.15s ease-out'
             }}
             className="shadow-2xl bg-white border border-slate-300 rounded-sm"
           >
-            {/* Printable Document Container with Exact ID */}
-            <div id="cv-document-container" className="bg-white text-slate-900 w-full min-h-[1123px] box-border">
+            {/* Printable Document Container */}
+            <div id="cv-document-container" className="bg-white text-slate-900 w-full min-h-[1123px] box-border relative">
               <TemplateComponent cvData={cvData} />
+
+              {/* Visual Page Break Marker if document spans multiple pages */}
+              {totalPagesCount > 1 && (
+                <div className="no-print absolute top-[1123px] left-0 right-0 border-b-2 border-dashed border-blue-400/80 flex items-center justify-between px-4 py-1 bg-blue-50/80 text-[10px] text-blue-700 font-mono">
+                  <span>Page 1 Ends Here</span>
+                  <span>Page 2 Begins</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -315,6 +349,15 @@ export const LivePreview: React.FC<LivePreviewProps> = ({
         selectedTemplateId={templateId}
         onSelectTemplate={onSelectTemplate}
       />
+
+      {/* Multi-Page Layout Manager Modal */}
+      {isPagesModalOpen && (
+        <MultiPageLayoutModal
+          cvData={cvData}
+          onUpdateLayout={handleUpdateLayout}
+          onClose={() => setIsPagesModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

@@ -61,7 +61,7 @@ jobs:
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             TAG_NAME="${{ github.ref_name }}"
           else
-            TAG_NAME="v1.0.0"
+            TAG_NAME="v1.1.0"
           fi
           echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
           echo "release_title=CV Maker ${TAG_NAME}" >> $GITHUB_OUTPUT

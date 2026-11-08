@@ -17,8 +17,11 @@ import {
   Save,
   LayoutTemplate,
   Check,
-  AlertCircle
+  AlertCircle,
+  Layers
 } from 'lucide-react';
+import { MultiPageLayoutModal } from '../components/MultiPageLayoutModal';
+import { CVPageLayout } from '../types/cv';
 
 interface BuilderPageProps {
   draft: CVDraft;
@@ -40,6 +43,7 @@ export const BuilderPage: React.FC<BuilderPageProps> = ({
   const [completedSteps, setCompletedSteps] = useState<Set<FormStepKey>>(new Set());
   const [errors, setErrors] = useState<{ fullName?: string; email?: string; jobTitle?: string }>({});
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isPagesModalOpen, setIsPagesModalOpen] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
 
   const stepOrder: FormStepKey[] = [
@@ -150,6 +154,17 @@ export const BuilderPage: React.FC<BuilderPageProps> = ({
               <LayoutTemplate className="w-3.5 h-3.5 text-blue-600" />
               <span className="hidden sm:inline">{t('templateLabel')}:</span>
               <span className="font-bold text-blue-700">{templateName}</span>
+            </button>
+
+            {/* Multi-Page Settings Button */}
+            <button
+              type="button"
+              onClick={() => setIsPagesModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold cursor-pointer transition-colors"
+              title="Multi-Page Layout Manager"
+            >
+              <Layers className="w-3.5 h-3.5 text-blue-600" />
+              <span>{draft.cvData.pageLayout?.totalPages || 1} {draft.cvData.pageLayout?.totalPages === 1 ? 'Page' : 'Pages'}</span>
             </button>
 
             {/* Save Draft */}
@@ -277,6 +292,23 @@ export const BuilderPage: React.FC<BuilderPageProps> = ({
           });
         }}
       />
+
+      {/* Multi-Page Layout Manager Modal */}
+      {isPagesModalOpen && (
+        <MultiPageLayoutModal
+          cvData={draft.cvData}
+          onUpdateLayout={(newLayout: CVPageLayout) => {
+            onUpdateDraft({
+              ...draft,
+              cvData: {
+                ...draft.cvData,
+                pageLayout: newLayout
+              }
+            });
+          }}
+          onClose={() => setIsPagesModalOpen(false)}
+        />
+      )}
     </div>
   );
 };

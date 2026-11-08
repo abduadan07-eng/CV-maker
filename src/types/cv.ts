@@ -108,6 +108,31 @@ export interface AdditionalSections {
   references: Reference[];
 }
 
+export type CVSectionKey =
+  | 'summary'
+  | 'experiences'
+  | 'education'
+  | 'skills'
+  | 'languages'
+  | 'projects'
+  | 'certifications'
+  | 'awards'
+  | 'volunteer'
+  | 'references';
+
+export interface CVPageConfig {
+  pageNumber: number;
+  sections: CVSectionKey[];
+}
+
+export interface CVPageLayout {
+  mode: 'auto' | 'manual';
+  totalPages: number; // 1 to 6, or 0 (unlimited)
+  pages: CVPageConfig[];
+  pageMargins?: 'compact' | 'normal' | 'spacious';
+  showPageNumbers?: boolean;
+}
+
 export interface CVData {
   personal: PersonalInfo;
   experiences: WorkExperience[];
@@ -116,6 +141,7 @@ export interface CVData {
   languages: Language[];
   additional: AdditionalSections;
   cvLanguage: CVLanguage;
+  pageLayout?: CVPageLayout;
 }
 
 export type TemplateId =

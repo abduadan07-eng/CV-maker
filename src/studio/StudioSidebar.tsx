@@ -322,6 +322,15 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <span>{t('addBodyText')}</span>
                 <Plus className="w-4 h-4 text-slate-500" />
               </button>
+
+              <button
+                type="button"
+                onClick={() => addTextElement('body', 'Experienced specialist with a proven track record delivering strategic impact, cross-functional project execution, and sustainable organizational growth across competitive markets.', 11, 'normal')}
+                className="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-left text-xs cursor-pointer transition-colors shadow-2xs flex items-center justify-between"
+              >
+                <span>Add Long Paragraph</span>
+                <Plus className="w-4 h-4 text-slate-500" />
+              </button>
             </div>
           </div>
         )}
@@ -368,6 +377,35 @@ export const StudioSidebar: React.FC<StudioSidebarProps> = ({
                 <div className="w-14 h-0.5 bg-slate-400 my-4" />
                 <span className="text-[11px] font-semibold text-slate-700">{t('addLine')}</span>
               </button>
+            </div>
+
+            {/* Quick Resume Icons */}
+            <div className="pt-2 border-t border-slate-100">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                Resume Icons
+              </span>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[
+                  { label: 'Phone', icon: '📞' },
+                  { label: 'Email', icon: '✉️' },
+                  { label: 'Location', icon: '📍' },
+                  { label: 'Web', icon: '🌐' },
+                  { label: 'LinkedIn', icon: '💼' },
+                  { label: 'Award', icon: '🏆' },
+                  { label: 'Degree', icon: '🎓' },
+                  { label: 'Check', icon: '✓' }
+                ].map(item => (
+                  <button
+                    key={item.label}
+                    type="button"
+                    onClick={() => addTextElement('body', item.icon, 20, 'normal')}
+                    className="p-2 bg-slate-50 border border-slate-200 rounded-lg hover:bg-blue-50 text-base text-center cursor-pointer transition"
+                    title={item.label}
+                  >
+                    {item.icon}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
