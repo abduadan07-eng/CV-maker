@@ -39,7 +39,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onOpenDraft
 }) => {
   const { t, language, setLanguage } = useLanguage();
-  const { user, openAuthModal, signOutUser, isCloudConnected } = useAuth();
+  const { user, openAuthModal, signOutUser, updateUserProfile, isCloudConnected } = useAuth();
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [username, setUsername] = useState('');
@@ -86,34 +86,31 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
         return;
       }
       const reader = new FileReader();
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         const result = event.target?.result as string;
         setPhotoUrl(result);
         if (user) {
-          syncUserProfile({ ...user, photoURL: result } as any, language);
+          await updateUserProfile({ photoURL: result });
         }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleRemovePhoto = () => {
+  const handleRemovePhoto = async () => {
     setPhotoUrl('');
     if (user) {
-      syncUserProfile({ ...user, photoURL: '' } as any, language);
+      await updateUserProfile({ photoURL: '' });
     }
   };
 
   const handleSaveProfile = async () => {
     if (user) {
       localStorage.setItem(`cv_user_${user.uid}_username`, username.trim());
-      await syncUserProfile(
-        {
-          ...user,
-          displayName: displayName.trim() || user.displayName
-        } as any,
-        language
-      );
+      await updateUserProfile({
+        displayName: displayName.trim() || user.displayName || undefined,
+        username: username.trim()
+      });
     }
     setIsEditingName(false);
     setSaveSuccess(true);

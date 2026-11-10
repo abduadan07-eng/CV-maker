@@ -27,7 +27,7 @@ export interface CloudSyncState {
  * Creates or updates the user document in `/users/{userId}`
  */
 export async function syncUserProfile(
-  user: User,
+  user: User | { uid: string; email?: string | null; displayName?: string | null; photoURL?: string | null },
   preferredLanguage: 'en' | 'so' = 'en'
 ): Promise<void> {
   const path = `users/${user.uid}`;
