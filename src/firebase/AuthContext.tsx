@@ -3,6 +3,11 @@ import {
   User,
   onAuthStateChanged,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile,
   signOut
 } from 'firebase/auth';
 import { auth, googleProvider, testFirestoreConnection } from './config';
@@ -12,7 +17,12 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   isCloudConnected: boolean;
-  signInWithGoogle: () => Promise<boolean>;
+  isAuthModalOpen: boolean;
+  openAuthModal: () => void;
+  closeAuthModal: () => void;
+  signInWithGoogle: (useRedirect?: boolean) => Promise<boolean>;
+  signInWithEmail: (email: string, password: string) => Promise<boolean>;
+  signUpWithEmail: (email: string, password: string, displayName?: string) => Promise<boolean>;
   signOutUser: () => Promise<void>;
 }
 
@@ -22,12 +32,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(false);
+
+  const openAuthModal = () => setIsAuthModalOpen(true);
+  const closeAuthModal = () => setIsAuthModalOpen(false);
 
   useEffect(() => {
     // Test initial connection to Firestore
     testFirestoreConnection().then(connected => {
       setIsCloudConnected(connected);
     });
+
+    // Handle any incoming redirect auth result (e.g., mobile redirect login)
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (result?.user) {
+          await syncUserProfile(result.user);
+        }
+      })
+      .catch((err) => {
+        console.warn('Redirect auth result warning:', err);
+      });
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
@@ -44,14 +69,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
-  const signInWithGoogle = async (): Promise<boolean> => {
+  const signInWithGoogle = async (useRedirect: boolean = false): Promise<boolean> => {
     try {
+      if (useRedirect) {
+        await signInWithRedirect(auth, googleProvider);
+        return true;
+      }
+
       const result = await signInWithPopup(auth, googleProvider);
       if (result.user) {
         await syncUserProfile(result.user);
       }
+      closeAuthModal();
       return true;
     } catch (error: any) {
+      // Check if popup was blocked (frequent on mobile / Samsung Browser)
+      if (error?.code === 'auth/popup-blocked') {
+        console.warn('Popup blocked, attempting redirect sign-in');
+        try {
+          await signInWithRedirect(auth, googleProvider);
+          return true;
+        } catch (redirectErr) {
+          console.error('Redirect sign-in error:', redirectErr);
+          throw redirectErr;
+        }
+      }
+
       // Check if user simply closed the popup or cancelled the request
       const isPopupClosedByUser =
         error?.code === 'auth/popup-closed-by-user' ||
@@ -62,14 +105,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
            error.message.includes('cancelled-popup-request')));
 
       if (isPopupClosedByUser) {
-        // User closed or dismissed the login popup intentionally.
-        // Return false gracefully without throwing or reporting fatal error.
         return false;
       }
 
       console.error('Google Sign-In Error:', error);
       throw error;
     }
+  };
+
+  const signInWithEmail = async (email: string, password: string): Promise<boolean> => {
+    const result = await signInWithEmailAndPassword(auth, email.trim(), password);
+    if (result.user) {
+      await syncUserProfile(result.user);
+    }
+    closeAuthModal();
+    return true;
+  };
+
+  const signUpWithEmail = async (
+    email: string,
+    password: string,
+    displayName?: string
+  ): Promise<boolean> => {
+    const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
+    if (result.user) {
+      if (displayName?.trim()) {
+        await updateProfile(result.user, { displayName: displayName.trim() });
+        await syncUserProfile({
+          ...result.user,
+          displayName: displayName.trim()
+        } as User);
+      } else {
+        await syncUserProfile(result.user);
+      }
+    }
+    closeAuthModal();
+    return true;
   };
 
   const signOutUser = async () => {
@@ -87,7 +158,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         loading,
         isCloudConnected,
+        isAuthModalOpen,
+        openAuthModal,
+        closeAuthModal,
         signInWithGoogle,
+        signInWithEmail,
+        signUpWithEmail,
         signOutUser
       }}
     >

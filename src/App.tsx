@@ -13,6 +13,7 @@ import { LibraryPage } from './pages/LibraryPage';
 import { CreatorPage } from './pages/CreatorPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { AdminDashboard } from './components/AdminDashboard';
+import { AuthModal } from './components/AuthModal';
 import { StudioDocument } from './types/studio';
 import { studioStorage } from './storage/studioStorage';
 import { createBlankStudioDocument, convertCvDataToStudioDocument } from './studio/studioConverter';
@@ -379,6 +380,9 @@ export default function App() {
         {showAdminDashboard && (
           <AdminDashboard onClose={() => setShowAdminDashboard(false)} />
         )}
+
+        {/* Global Authentication Modal (Google, Email/Password, Guest mode) */}
+        <AuthModal />
       </div>
     </LanguageProvider>
   );

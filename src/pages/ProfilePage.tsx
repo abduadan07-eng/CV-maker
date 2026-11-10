@@ -39,7 +39,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
   onOpenDraft
 }) => {
   const { t, language, setLanguage } = useLanguage();
-  const { user, signInWithGoogle, signOutUser, isCloudConnected } = useAuth();
+  const { user, openAuthModal, signOutUser, isCloudConnected } = useAuth();
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [username, setUsername] = useState('');
@@ -185,11 +185,11 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({
                 ) : (
                   <button
                     type="button"
-                    onClick={() => signInWithGoogle()}
+                    onClick={() => openAuthModal()}
                     className="text-[11px] font-bold text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100 px-3 py-1 rounded-xl flex items-center gap-1 cursor-pointer transition shadow-2xs"
                   >
                     <LogIn className="w-3.5 h-3.5" />
-                    <span>{language === 'so' ? 'Ku Gal Google' : 'Connect Account'}</span>
+                    <span>{language === 'so' ? 'Ku Xiro Akoon' : 'Connect Account'}</span>
                   </button>
                 )}
               </div>

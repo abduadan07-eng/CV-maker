@@ -19,29 +19,11 @@ export const Navbar: React.FC<NavbarProps> = ({
   hasUnsavedChanges
 }) => {
   const { language, setLanguage, t } = useLanguage();
-  const { user, isCloudConnected, signInWithGoogle, signOutUser, loading: authLoading } = useAuth();
-  const [isSigningIn, setIsSigningIn] = useState(false);
+  const { user, isCloudConnected, openAuthModal, signOutUser, loading: authLoading } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  const handleSignIn = async () => {
-    try {
-      setIsSigningIn(true);
-      await signInWithGoogle();
-    } catch (err: any) {
-      const isPopupClosed =
-        err?.code === 'auth/popup-closed-by-user' ||
-        err?.code === 'auth/cancelled-popup-request' ||
-        err?.code === 'auth/user-cancelled' ||
-        (typeof err?.message === 'string' &&
-          (err.message.includes('popup-closed-by-user') ||
-           err.message.includes('cancelled-popup-request')));
-
-      if (!isPopupClosed) {
-        console.error('Sign-in failed:', err);
-      }
-    } finally {
-      setIsSigningIn(false);
-    }
+  const handleSignIn = () => {
+    openAuthModal();
   };
 
   const handleSignOut = async () => {
@@ -218,7 +200,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             <button
               type="button"
               onClick={handleSignIn}
-              disabled={isSigningIn || authLoading}
+              disabled={authLoading}
               className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold transition cursor-pointer shadow-2xs disabled:opacity-50"
               title={t('signInToBackup')}
             >

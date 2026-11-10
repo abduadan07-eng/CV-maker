@@ -22,7 +22,7 @@ export const CreatorPage: React.FC<CreatorPageProps> = ({
   onOpenBuilder
 }) => {
   const { t, language } = useLanguage();
-  const { user, signInWithGoogle } = useAuth();
+  const { user, openAuthModal } = useAuth();
 
   const [application, setApplication] = useState<CreatorApplication | null>(null);
   const [applicantName, setApplicantName] = useState('');
@@ -491,10 +491,10 @@ export const CreatorPage: React.FC<CreatorPageProps> = ({
                 </span>
                 <button
                   type="button"
-                  onClick={() => signInWithGoogle()}
+                  onClick={() => openAuthModal()}
                   className="px-3 py-1 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 cursor-pointer"
                 >
-                  {language === 'so' ? 'Gal Google' : 'Google Login'}
+                  {language === 'so' ? 'Gal Akoonkaaga' : 'Account Login'}
                 </button>
               </div>
             )}

@@ -57,7 +57,7 @@ export const HomePage: React.FC<HomePageProps> = ({
   isCloudSyncing = false
 }) => {
   const { t, language } = useLanguage();
-  const { user, signInWithGoogle, isCloudConnected } = useAuth();
+  const { user, openAuthModal, isCloudConnected } = useAuth();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const [renameTarget, setRenameTarget] = useState<{ id: string; title: string } | null>(null);
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
@@ -99,22 +99,7 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   const handleManualSyncAll = async () => {
     if (!user) {
-      try {
-        const signedIn = await signInWithGoogle();
-        if (!signedIn) return;
-      } catch (err: any) {
-        const isPopupClosed =
-          err?.code === 'auth/popup-closed-by-user' ||
-          err?.code === 'auth/cancelled-popup-request' ||
-          err?.code === 'auth/user-cancelled' ||
-          (typeof err?.message === 'string' &&
-            (err.message.includes('popup-closed-by-user') ||
-             err.message.includes('cancelled-popup-request')));
-
-        if (!isPopupClosed) {
-          console.error(err);
-        }
-      }
+      openAuthModal();
       return;
     }
 
@@ -263,11 +248,11 @@ export const HomePage: React.FC<HomePageProps> = ({
             ) : (
               <button
                 type="button"
-                onClick={() => signInWithGoogle().catch(console.error)}
+                onClick={() => openAuthModal()}
                 className="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold cursor-pointer transition shadow-xs"
               >
                 <LogIn className="w-3.5 h-3.5" />
-                <span>{t('signInWithGoogle')}</span>
+                <span>{language === 'so' ? 'Gal Akoonkaaga' : t('signInWithGoogle')}</span>
               </button>
             )}
           </div>
